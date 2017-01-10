@@ -9,7 +9,6 @@ const commonConfig = require('./webpack.common.js'); // the settings that are co
 /**
  * Webpack Plugins
  */
-const DefinePlugin = require('webpack/lib/DefinePlugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const IgnorePlugin = require('webpack/lib/IgnorePlugin');
 const LoaderOptionsPlugin = require('webpack/lib/LoaderOptionsPlugin');
@@ -22,14 +21,12 @@ const V8LazyParseWebpackPlugin = require('v8-lazy-parse-webpack-plugin');
  * Webpack Constants
  */
 const ENV = process.env.NODE_ENV = process.env.ENV = 'production';
-const HOST = process.env.HOST || 'localhost';
-const PORT = process.env.PORT || 8080;
-const METADATA = webpackMerge(commonConfig({env: ENV}).metadata, {
-  host: HOST,
-  port: PORT,
-  ENV: ENV,
-  HMR: false
+
+const metadata = require('./webpack.metadata.js');
+Object.assign(metadata, {
+  ENV: ENV
 });
+
 
 module.exports = function (env) {
   return webpackMerge(commonConfig({env: ENV}), {
@@ -123,7 +120,7 @@ module.exports = function (env) {
 
       /**
        * Plugin: ExtractTextPlugin
-       * Description: Extracts imported CSS files into external stylesheet 
+       * Description: Extracts imported CSS files into external stylesheet
        *
        * See: https://github.com/webpack/extract-text-webpack-plugin
        */
@@ -136,26 +133,6 @@ module.exports = function (env) {
        * See: https://www.npmjs.com/package/webpack-md5-hash
        */
       new WebpackMd5Hash(),
-
-      /**
-       * Plugin: DefinePlugin
-       * Description: Define free variables.
-       * Useful for having development builds with debug logging or adding global constants.
-       *
-       * Environment helpers
-       *
-       * See: https://webpack.github.io/docs/list-of-plugins.html#defineplugin
-       */
-      // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
-      new DefinePlugin({
-        'ENV': JSON.stringify(METADATA.ENV),
-        'HMR': METADATA.HMR,
-        'process.env': {
-          'ENV': JSON.stringify(METADATA.ENV),
-          'NODE_ENV': JSON.stringify(METADATA.ENV),
-          'HMR': METADATA.HMR,
-        }
-      }),
 
       /**
        * Plugin: UglifyJsPlugin

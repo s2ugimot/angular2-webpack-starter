@@ -15,6 +15,7 @@ const ContextReplacementPlugin = require('webpack/lib/ContextReplacementPlugin')
 const CommonsChunkPlugin = require('webpack/lib/optimize/CommonsChunkPlugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+const DefinePlugin = require('webpack/lib/DefinePlugin');
 const HtmlElementsPlugin = require('./html-elements-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const LoaderOptionsPlugin = require('webpack/lib/LoaderOptionsPlugin');
@@ -24,13 +25,8 @@ const ngcWebpack = require('ngc-webpack');
 /*
  * Webpack Constants
  */
-const HMR = helpers.hasProcessFlag('hot');
 const AOT = helpers.hasNpmFlag('aot');
-const METADATA = {
-  title: 'Angular2 Webpack Starter by @gdi2290 from @AngularClass',
-  baseUrl: '/',
-  isDevServer: helpers.isWebpackDevServer()
-};
+const metadata = require('./webpack.metadata.js');
 
 /*
  * Webpack configuration
@@ -177,6 +173,28 @@ module.exports = function (options) {
      * See: http://webpack.github.io/docs/configuration.html#plugins
      */
     plugins: [
+
+      /**
+       * Plugin: DefinePlugin
+       * Description: Define free variables.
+       * Useful for having development builds with debug logging or adding global constants.
+       *
+       * Environment helpers
+       *
+       * See: https://webpack.github.io/docs/list-of-plugins.html#defineplugin
+       */
+      // NOTE: when adding more properties make sure you include them in custom-typings.d.ts
+      new DefinePlugin({
+        'ENV': JSON.stringify(metadata.ENV),
+        'HMR': metadata.HMR,
+        'process.env': {
+          'ENV': JSON.stringify(metadata.ENV),
+          'NODE_ENV': JSON.stringify(metadata.ENV),
+          'HMR': metadata.HMR,
+        }
+      }),
+
+
       new AssetsPlugin({
         path: helpers.root('dist'),
         filename: 'webpack-assets.json',
@@ -253,9 +271,9 @@ module.exports = function (options) {
        */
       new HtmlWebpackPlugin({
         template: 'src/index.html',
-        title: METADATA.title,
+        title: metadata.title,
         chunksSortMode: 'dependency',
-        metadata: METADATA,
+        metadata: metadata,
         inject: 'head'
       }),
 

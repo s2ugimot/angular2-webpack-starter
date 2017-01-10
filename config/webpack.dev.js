@@ -9,7 +9,6 @@ const commonConfig = require('./webpack.common.js'); // the settings that are co
 /**
  * Webpack Plugins
  */
-const DefinePlugin = require('webpack/lib/DefinePlugin');
 const NamedModulesPlugin = require('webpack/lib/NamedModulesPlugin');
 const LoaderOptionsPlugin = require('webpack/lib/LoaderOptionsPlugin');
 
@@ -19,12 +18,11 @@ const LoaderOptionsPlugin = require('webpack/lib/LoaderOptionsPlugin');
 const ENV = process.env.ENV = process.env.NODE_ENV = 'development';
 const HOST = process.env.HOST || 'localhost';
 const PORT = process.env.PORT || 3000;
-const HMR = helpers.hasProcessFlag('hot');
-const METADATA = webpackMerge(commonConfig({env: ENV}).metadata, {
-  host: HOST,
-  port: PORT,
+
+const metadata = require('./webpack.metadata.js');
+Object.assign(metadata, {
   ENV: ENV,
-  HMR: HMR
+  title: '[dev] ' + metadata.title,
 });
 
 /**
@@ -117,26 +115,6 @@ module.exports = function (options) {
     plugins: [
 
       /**
-       * Plugin: DefinePlugin
-       * Description: Define free variables.
-       * Useful for having development builds with debug logging or adding global constants.
-       *
-       * Environment helpers
-       *
-       * See: https://webpack.github.io/docs/list-of-plugins.html#defineplugin
-       */
-      // NOTE: when adding more properties, make sure you include them in custom-typings.d.ts
-      new DefinePlugin({
-        'ENV': JSON.stringify(METADATA.ENV),
-        'HMR': METADATA.HMR,
-        'process.env': {
-          'ENV': JSON.stringify(METADATA.ENV),
-          'NODE_ENV': JSON.stringify(METADATA.ENV),
-          'HMR': METADATA.HMR,
-        }
-      }),
-
-      /**
        * Plugin: NamedModulesPlugin (experimental)
        * Description: Uses file names as module name.
        *
@@ -167,8 +145,8 @@ module.exports = function (options) {
      * See: https://webpack.github.io/docs/webpack-dev-server.html
      */
     devServer: {
-      port: METADATA.port,
-      host: METADATA.host,
+      port: PORT,
+      host: HOST,
       historyApiFallback: true,
       watchOptions: {
         aggregateTimeout: 300,
